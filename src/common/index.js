@@ -4,6 +4,7 @@ import WordLine from './WordLine';
 import WordList from './WordList';
 import MomentsLine from './MomentsLine';
 import Taps from './Taps';
+import ToggleCard from './ToggleCard';
 export {
   Loading,
   NavBar,
@@ -11,4 +12,5 @@ export {
   WordList,
   Taps,
   MomentsLine,
+  ToggleCard,
 };

@@ -9,7 +9,7 @@ class Login extends Component {
       password:'',
       registerUserName:'',
       registerMobilePhoneNumber: '',
-      registerPassword: '', 
+      registerPassword: '',
       rePassword:'',
       loginStatus:true,
 
@@ -29,7 +29,7 @@ class Login extends Component {
   }
   componentWillMount() {
     const isLogin = userModel.getCurrentUser();
-    if (isLogin) this.props.history.push('viewPersonalAccount');   
+    if (isLogin) this.props.history.push('myMoments');   
   }
   // 获取用户名
   userNmaehandleChange(event) {
@@ -111,10 +111,10 @@ class Login extends Component {
       alert('手机号不能为空');
       return;
     }
-    if(!(/^1(3|4|5|7|8)\d{9}$/.test(registerMobilePhoneNumber))){ 
-        alert("手机号码有误，请重填");  
-        return false; 
-    } 
+    if(!(/^1(3|4|5|7|8)\d{9}$/.test(registerMobilePhoneNumber))){
+        alert("手机号码有误，请重填");
+        return false;
+    }
     if (registerPassword !== rePassword) {
       alert('两次输入不一样，请重新输入');
       return;
@@ -142,9 +142,9 @@ class Login extends Component {
     this.setState({
       loginStatus:false
     })
-  }  
+  }
 
-  
+
   render() {
 
 
@@ -209,7 +209,7 @@ class Login extends Component {
        {/*<p><span>用户名:</span><input type="number" placeholder="输入手机号" onChange={this.userNmaehandleChange} /></p>
               <p><span>密码:</span><input type="password" placeholder="输入密码" onChange={this.pwdhandleChange} /></p>
               <div className="login-btn"><button type="button" onClick={this.loginFn}>登录</button><b type="button">注册</b></div>*/}
-    
+
     <div>
 
       <ul className="tabs">

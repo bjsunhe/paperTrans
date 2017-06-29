@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 43);
+/******/ 	return __webpack_require__(__webpack_require__.s = 51);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -85,7 +85,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _leancloudStorage = __webpack_require__(39);
+var _leancloudStorage = __webpack_require__(47);
 
 var _leancloudStorage2 = _interopRequireDefault(_leancloudStorage);
 
@@ -188,6 +188,14 @@ var AbstractModel = function () {
       user.set({ mobilePhoneNumber: params.mobilePhoneNumber });
       user.signUp().then(function (loginedUser) {
         succ && succ(loginedUser);
+        console.log(loginedUser);
+
+        var objVocabulary = _leancloudStorage2.default.Object.extend('Vocabulary');
+        var todoVocabulary = new objVocabulary();
+        todoVocabulary.set('userId', loginedUser.id);
+        todoVocabulary.set('VocabularyWordList', []);
+
+        todoVocabulary.save();
       }, function (error) {
         fail && fail(error);
       });
@@ -352,7 +360,39 @@ var AbstractModel = function () {
         // VocabularyLists.set('show', params.show);
         // VocabularyLists.set('paperId', params.paperId);
         VocabularyLists.set('VocabularyWordList', params.wordList);
-        VocabularyLists.save().then(function () {}, function () {});
+        VocabularyLists.save().then(function () {
+
+          var vacabularyId = '';
+          var query = new _leancloudStorage2.default.Query('Vocabulary');
+          query.equalTo('userId', params.userId);
+          query.find().then(function (results) {
+            vacabularyId = results[0].id;
+            var VocabularyWordListQuery = results[0].attributes.VocabularyWordList;
+            var vocabularyListFinal = VocabularyWordListQuery;
+            params.wordList.forEach(function (item) {
+              if (!item.familiar) {
+                //如果存在，在原来的单词出现次数，频率，count,上加1
+                var wordCount = 0; //统计该单词出现的次数
+                vocabularyListFinal.forEach(function (vocabularyItem) {
+                  if (item.word == vocabularyItem.word) {
+                    wordCount++;
+                    vocabularyItem.count || vocabularyItem.count == 0 ? vocabularyItem.count++ : vocabularyItem.count = 0;
+                  }
+                });
+
+                if (!wordCount) {
+                  item.count = 0;
+                }
+                vocabularyListFinal.push(item);
+              }
+            });
+            var vocabularyObject = _leancloudStorage2.default.Object.createWithoutData('Vocabulary', vacabularyId);
+            // 修改属性
+            vocabularyObject.set('VocabularyWordList', vocabularyListFinal);
+            // 保存到云端
+            vocabularyObject.save();
+          }, function () {});
+        }, function () {});
       }, function (error) {
         fail && fail(error);
       });
@@ -425,25 +465,29 @@ exports.default = userModel;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Taps = exports.WordList = exports.WordLine = exports.NavBar = exports.Loading = undefined;
+exports.MomentsLine = exports.Taps = exports.WordList = exports.WordLine = exports.NavBar = exports.Loading = undefined;
 
 var _Loading = __webpack_require__(6);
 
 var _Loading2 = _interopRequireDefault(_Loading);
 
-var _NavBar = __webpack_require__(7);
+var _NavBar = __webpack_require__(8);
 
 var _NavBar2 = _interopRequireDefault(_NavBar);
 
-var _WordLine = __webpack_require__(9);
+var _WordLine = __webpack_require__(10);
 
 var _WordLine2 = _interopRequireDefault(_WordLine);
 
-var _WordList = __webpack_require__(10);
+var _WordList = __webpack_require__(11);
 
 var _WordList2 = _interopRequireDefault(_WordList);
 
-var _Taps = __webpack_require__(8);
+var _MomentsLine = __webpack_require__(7);
+
+var _MomentsLine2 = _interopRequireDefault(_MomentsLine);
+
+var _Taps = __webpack_require__(9);
 
 var _Taps2 = _interopRequireDefault(_Taps);
 
@@ -454,6 +498,7 @@ exports.NavBar = _NavBar2.default;
 exports.WordLine = _WordLine2.default;
 exports.WordList = _WordList2.default;
 exports.Taps = _Taps2.default;
+exports.MomentsLine = _MomentsLine2.default;
 
 /***/ }),
 /* 3 */
@@ -558,41 +603,53 @@ var _reactDom = __webpack_require__(4);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _reactRouterDom = __webpack_require__(42);
+var _reactRouterDom = __webpack_require__(50);
 
-__webpack_require__(19);
+__webpack_require__(23);
 
-var _Login = __webpack_require__(13);
+var _Login = __webpack_require__(15);
 
 var _Login2 = _interopRequireDefault(_Login);
 
-var _MyAccount = __webpack_require__(15);
+var _MyAccount = __webpack_require__(17);
 
 var _MyAccount2 = _interopRequireDefault(_MyAccount);
 
-var _MyWordList = __webpack_require__(16);
+var _MyWordList = __webpack_require__(19);
 
 var _MyWordList2 = _interopRequireDefault(_MyWordList);
 
-var _Vocabulary = __webpack_require__(18);
+var _Vocabulary = __webpack_require__(22);
 
 var _Vocabulary2 = _interopRequireDefault(_Vocabulary);
 
-var _EditProfile = __webpack_require__(12);
+var _EditProfile = __webpack_require__(13);
 
 var _EditProfile2 = _interopRequireDefault(_EditProfile);
 
-var _Moments = __webpack_require__(14);
+var _Moments = __webpack_require__(16);
 
 var _Moments2 = _interopRequireDefault(_Moments);
 
-var _ViewPersonalAccount = __webpack_require__(17);
+var _ViewPersonalAccount = __webpack_require__(21);
 
 var _ViewPersonalAccount2 = _interopRequireDefault(_ViewPersonalAccount);
 
-var _AllMoments = __webpack_require__(11);
+var _AllMoments = __webpack_require__(12);
 
 var _AllMoments2 = _interopRequireDefault(_AllMoments);
+
+var _MyMoments = __webpack_require__(18);
+
+var _MyMoments2 = _interopRequireDefault(_MyMoments);
+
+var _PaperTrans = __webpack_require__(20);
+
+var _PaperTrans2 = _interopRequireDefault(_PaperTrans);
+
+var _Explor = __webpack_require__(14);
+
+var _Explor2 = _interopRequireDefault(_Explor);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -614,7 +671,10 @@ var BasicExample = function BasicExample() {
       _react2.default.createElement(_reactRouterDom.Route, { path: '/editProfile', component: _EditProfile2.default }),
       _react2.default.createElement(_reactRouterDom.Route, { path: '/moments', component: _Moments2.default }),
       _react2.default.createElement(_reactRouterDom.Route, { path: '/viewPersonalAccount', component: _ViewPersonalAccount2.default }),
-      _react2.default.createElement(_reactRouterDom.Route, { path: '/allMoments', component: _AllMoments2.default })
+      _react2.default.createElement(_reactRouterDom.Route, { path: '/allMoments', component: _AllMoments2.default }),
+      _react2.default.createElement(_reactRouterDom.Route, { path: '/myMoments', component: _MyMoments2.default }),
+      _react2.default.createElement(_reactRouterDom.Route, { path: '/paperTrans', component: _PaperTrans2.default }),
+      _react2.default.createElement(_reactRouterDom.Route, { path: '/explor', component: _Explor2.default })
     )
   );
 };
@@ -635,7 +695,7 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(22);
+__webpack_require__(26);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -674,7 +734,97 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(23);
+__webpack_require__(27);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var MomentsLine = function MomentsLine(props) {
+  var _props$items = props.items,
+      items = _props$items === undefined ? [] : _props$items;
+
+  if (items.length === 0) return null;
+  var list = items.map(function (item, i) {
+    var btns = item.btns ? item.btns.map(function (value, j) {
+      return _react2.default.createElement(
+        'div',
+        { className: 'flex-full btn', onClick: function onClick() {
+            value.callback && value.callback(i);
+          } },
+        value.label
+      );
+    }) : '';
+    return _react2.default.createElement(
+      'li',
+      { className: 'flex-hrz', key: i },
+      _react2.default.createElement(
+        'div',
+        { className: 'time-text' },
+        _react2.default.createElement(
+          'span',
+          { className: 'text-bottom' },
+          item.time || ''
+        )
+      ),
+      item.momentLink ? _react2.default.createElement(
+        'div',
+        { className: 'flex-full paper-box' },
+        _react2.default.createElement(
+          'h3',
+          { className: 'paper-title' },
+          item.momentText || item.momentLink || ''
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'introduction' },
+          item.momentLinkDesc || '',
+          ' ',
+          _react2.default.createElement('br', null),
+          _react2.default.createElement(
+            'a',
+            { className: 'momentLink effect-1', href: item.momentLink || '', target: '_blank' },
+            item.momentLink || ''
+          )
+        ),
+        _react2.default.createElement(
+          'footer',
+          { className: 'flex-hrz' },
+          btns
+        )
+      ) : _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement(
+          'div',
+          { className: 'momentText' },
+          item.momentText || ''
+        )
+      )
+    );
+  });
+  return _react2.default.createElement(
+    'ul',
+    { className: 'MomentsLine' },
+    list
+  );
+};
+exports.default = MomentsLine;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+__webpack_require__(28);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -708,7 +858,7 @@ var NavBar = function NavBar(props) {
 exports.default = NavBar;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -724,7 +874,7 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(24);
+__webpack_require__(29);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -798,7 +948,7 @@ var Taps = function (_Component) {
 exports.default = Taps;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -812,7 +962,7 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(25);
+__webpack_require__(30);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -854,7 +1004,9 @@ var WordLine = function WordLine(props) {
         _react2.default.createElement(
           'div',
           { className: 'introduction' },
-          item.content
+          item.content,
+          _react2.default.createElement('br', null),
+          item.keyWords && item.keyWords[0] ? item.keyWords[0] : ''
         ),
         _react2.default.createElement(
           'footer',
@@ -873,7 +1025,7 @@ var WordLine = function WordLine(props) {
 exports.default = WordLine;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -887,7 +1039,7 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(26);
+__webpack_require__(31);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -902,6 +1054,25 @@ var WordList = function WordList(props) {
     if (wordType === 1) {
       li = wordLists.map(function (value, i) {
         if (value.familiar) return null;
+        var wordLevel = [];
+        var showWordLevel = '';
+        if (value.tag !== 1) {
+          value.tag.forEach(function (i) {
+            wordLevel.push(_react2.default.createElement(
+              'span',
+              null,
+              i.toUpperCase(),
+              '/'
+            ));
+          });
+          showWordLevel = _react2.default.createElement(
+            'p',
+            null,
+            '\u7B49\u7EA7:',
+            wordLevel
+          );
+        }
+
         return _react2.default.createElement(
           'li',
           { className: 'flex-hrz', key: i, onClick: function onClick() {
@@ -923,8 +1094,15 @@ var WordList = function WordList(props) {
             _react2.default.createElement(
               'p',
               null,
-              value.translation
-            )
+              value.translation.replace(/\\n/g, "；")
+            ),
+            _react2.default.createElement(
+              'p',
+              null,
+              'BNC:',
+              value.bnc
+            ),
+            showWordLevel
           )
         );
       });
@@ -933,6 +1111,24 @@ var WordList = function WordList(props) {
     if (wordType === 2) {
       li = wordLists.map(function (value, i) {
         if (value.familiar) {
+          var wordLevel = [];
+          var showWordLevel = '';
+          if (value.tag !== 1) {
+            value.tag.forEach(function (i) {
+              wordLevel.push(_react2.default.createElement(
+                'span',
+                null,
+                i.toUpperCase(),
+                '/'
+              ));
+            });
+            showWordLevel = _react2.default.createElement(
+              'p',
+              null,
+              '\u7B49\u7EA7:',
+              wordLevel
+            );
+          }
           return _react2.default.createElement(
             'li',
             { className: 'flex-hrz', key: i, onClick: function onClick() {
@@ -954,8 +1150,15 @@ var WordList = function WordList(props) {
               _react2.default.createElement(
                 'p',
                 null,
-                value.translation
-              )
+                value.translation.replace(/\\n/g, "；")
+              ),
+              _react2.default.createElement(
+                'p',
+                null,
+                'BNC:',
+                value.bnc
+              ),
+              showWordLevel
             )
           );
         }
@@ -965,6 +1168,24 @@ var WordList = function WordList(props) {
     if (wordType === 0) {
       li = wordLists.map(function (value, i) {
         var haschecked = value.familiar ? 'circle spain' : 'circle';
+        var wordLevel = [];
+        var showWordLevel = '';
+        if (value.tag !== 1) {
+          value.tag.forEach(function (i) {
+            wordLevel.push(_react2.default.createElement(
+              'span',
+              null,
+              i.toUpperCase(),
+              '/'
+            ));
+          });
+          showWordLevel = _react2.default.createElement(
+            'p',
+            null,
+            '\u7B49\u7EA7:',
+            wordLevel
+          );
+        }
         return _react2.default.createElement(
           'li',
           { className: 'flex-hrz', key: i, onClick: function onClick() {
@@ -986,8 +1207,15 @@ var WordList = function WordList(props) {
             _react2.default.createElement(
               'p',
               null,
-              value.translation
-            )
+              value.translation.replace(/\\n/g, "；")
+            ),
+            _react2.default.createElement(
+              'p',
+              null,
+              'BNC:',
+              value.bnc
+            ),
+            showWordLevel
           )
         );
       });
@@ -1004,7 +1232,7 @@ var WordList = function WordList(props) {
 exports.default = WordList;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1034,7 +1262,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(27);
+__webpack_require__(32);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1647,7 +1875,7 @@ var AllMoments = function (_PageManager) {
 exports.default = AllMoments;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1677,7 +1905,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(28);
+__webpack_require__(33);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1929,7 +2157,580 @@ var EditProfile = function (_PageManager) {
 exports.default = EditProfile;
 
 /***/ }),
-/* 13 */
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(4);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _index = __webpack_require__(2);
+
+var _AbstractModel = __webpack_require__(1);
+
+var _AbstractModel2 = _interopRequireDefault(_AbstractModel);
+
+var _PageManager2 = __webpack_require__(3);
+
+var _PageManager3 = _interopRequireDefault(_PageManager2);
+
+__webpack_require__(34);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Explor = function (_PageManager) {
+  _inherits(Explor, _PageManager);
+
+  function Explor(props) {
+    _classCallCheck(this, Explor);
+
+    return _possibleConstructorReturn(this, (Explor.__proto__ || Object.getPrototypeOf(Explor)).call(this, props));
+  }
+
+  _createClass(Explor, [{
+    key: 'componentWillMount',
+    value: function componentWillMount() {}
+  }, {
+    key: 'selecterHandler',
+    value: function selecterHandler() {
+      console.log(_reactDom2.default.findDOMNode(this.qrcode));
+      new QRCode(_reactDom2.default.findDOMNode(this.qrcode), "http://jindo.dev.naver.com/collie");
+      /* var self = this;
+       var selecter = new ImgSlter();
+       selecter.handler = function (data) {
+           ReactDOM.findDOMNode(self._imgRef).src = data.img;
+           console.log(ReactDOM.findDOMNode(self._imgRef));
+       };
+       selecter.select();*/
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      var delivcardDefaultData = [{ id: '2618-3157', price: 25, requests: 5, pledge: 150, weight: 50,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'purple', themeColorHex: '#BA68C8',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-1.jpg', rating: 5, ratingCount: 26,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 10025',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11101',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }, { id: '2618-3156', price: 37, requests: 7, pledge: 222, weight: 66,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'green', themeColorHex: '#52A43A',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-2.jpg', rating: 4, ratingCount: 21,
+        fromStreet: 'W 85th St', fromCity: 'New York, NY 1025',
+        toStreet: 'E 30th Ave', toCity: 'New York, NY 1001',
+        delivTime: '07:30 am', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '33 minutes' }, { id: '2618-3155', price: 12, requests: 3, pledge: 80, weight: 20,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'orange', themeColorHex: '#F7AA17',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-3.jpg', rating: 5, ratingCount: 15,
+        fromStreet: 'W 79th St', fromCity: 'New York, NY 1024',
+        toStreet: 'W 139th Ave', toCity: 'New York, NY 1030',
+        delivTime: '09:22 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '15 minutes' }, { id: '2618-3154', price: 80, requests: 25, pledge: 550, weight: 250,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'red', themeColorHex: '#EF5350',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-4.jpg', rating: 5, ratingCount: 66,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 125',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }, { id: '2618-3153', price: 49, requests: 17, pledge: 299, weight: 149,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'purple', themeColorHex: '#BA68C8',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-5.jpg', rating: 5, ratingCount: 26,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 1025',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11101',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }, { id: '2618-3152', price: 99, requests: 33, pledge: 611, weight: 432,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'green', themeColorHex: '#52A43A',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-6.jpg', rating: 2, ratingCount: 26,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 1025',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11101',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }, { id: '2618-3151', price: 61, requests: 15, pledge: 318, weight: 130,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'orange', themeColorHex: '#F7AA17',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-7.jpg', rating: 3, ratingCount: 26,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 10025',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11101',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }, { id: '2618-3150', price: 13, requests: 9, pledge: 231, weight: 55,
+        sender: 'Edward Norton', senderImg: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-sender.jpg',
+        themeColor: 'red', themeColorHex: '#EF5350',
+        bgImgUrl: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/deliv-8.jpg', rating: 4, ratingCount: 26,
+        fromStreet: 'W 90th St', fromCity: 'New York, NY 10025',
+        toStreet: '46th Ave', toCity: 'Woodside, NY 11101',
+        delivTime: '06:30 pm', delivDate: 'May 16, 2015', delivDateNoun: 'Today',
+        reqDl: '24 minutes' }];
+
+      return _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement('div', { ref: function ref(_ref) {
+            return _this2.qrcode = _ref;
+          } }),
+        _react2.default.createElement('img', { src: '', ref: function ref(_ref2) {
+            return _this2._imgRef = _ref2;
+          } }),
+        _react2.default.createElement(
+          'div',
+          { onClick: this.selecterHandler },
+          '\u56FE\u7247\u5904\u7406'
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'phone', 'ng-app': 'delivcard' },
+          _react2.default.createElement(
+            'div',
+            { className: 'phone__screen' },
+            _react2.default.createElement(
+              'div',
+              { className: 'phone__scroll-cont' },
+              _react2.default.createElement(
+                'div',
+                { className: 'phone__content', 'ng-controller': 'DelivCtrl' },
+                _react2.default.createElement(
+                  'section',
+                  { 'ng-repeat': 'card in cards', className: 'card theme-{{card.themeColor}}', 'data-color': '{{card.themeColorHex}}' },
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'card__map' },
+                    _react2.default.createElement('div', { className: 'card__map__inner' })
+                  ),
+                  _react2.default.createElement(
+                    'section',
+                    { className: 'card__part card__part-1' },
+                    _react2.default.createElement(
+                      'div',
+                      { className: 'card__part__inner' },
+                      _react2.default.createElement(
+                        'header',
+                        { className: 'card__header' },
+                        _react2.default.createElement('div', { className: 'card__header__close-btn' }),
+                        _react2.default.createElement(
+                          'span',
+                          { className: 'card__header__id' },
+                          ' ',
+                          delivcardDefaultData[0].id
+                        ),
+                        _react2.default.createElement(
+                          'span',
+                          { className: 'card__header__price' },
+                          delivcardDefaultData[0].price
+                        )
+                      ),
+                      _react2.default.createElement(
+                        'div',
+                        { className: 'card__stats', 'ng-style': '{\'background-image\': \'url({{card.bgImgUrl}})\'}' },
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__stats__item card__stats__item--req' },
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__stats__type' },
+                            'Requests'
+                          ),
+                          _react2.default.createElement(
+                            'span',
+                            { className: 'card__stats__value' },
+                            'delivcardDefaultData[0].requests}}'
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__stats__item card__stats__item--pledge' },
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__stats__type' },
+                            'Pledge'
+                          ),
+                          _react2.default.createElement(
+                            'span',
+                            { className: 'card__stats__value' },
+                            delivcardDefaultData[0].pledge
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__stats__item card__stats__item--weight' },
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__stats__type' },
+                            'Weight'
+                          ),
+                          _react2.default.createElement(
+                            'span',
+                            { className: 'card__stats__value' },
+                            delivcardDefaultData[0].weight,
+                            ' oz'
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'section',
+                    { className: 'card__part card__part-2' },
+                    _react2.default.createElement(
+                      'div',
+                      { className: 'card__part__side m--back' },
+                      _react2.default.createElement(
+                        'div',
+                        { className: 'card__part__inner card__face' },
+                        _react2.default.createElement('div', { className: 'card__face__colored-side' }),
+                        _react2.default.createElement(
+                          'h3',
+                          { className: 'card__face__price' },
+                          delivcardDefaultData[0].price
+                        ),
+                        _react2.default.createElement('div', { className: 'card__face__divider' }),
+                        _react2.default.createElement('div', { className: 'card__face__path' }),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__face__from-to' },
+                          _react2.default.createElement(
+                            'p',
+                            null,
+                            delivcardDefaultData[0].fromStreet,
+                            ', ',
+                            delivcardDefaultData[0].fromCity
+                          ),
+                          _react2.default.createElement(
+                            'p',
+                            null,
+                            delivcardDefaultData[0].toStreet,
+                            ', ',
+                            delivcardDefaultData[0].toCity
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__face__deliv-date' },
+                          delivcardDefaultData[0].delivDateNoun,
+                          _react2.default.createElement(
+                            'p',
+                            null,
+                            delivcardDefaultData[0].delivTime
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__face__stats card__face__stats--req' },
+                          'Requests',
+                          _react2.default.createElement(
+                            'p',
+                            null,
+                            delivcardDefaultData[0].requests
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__face__stats card__face__stats--pledge' },
+                          'Pledge',
+                          _react2.default.createElement(
+                            'p',
+                            null,
+                            delivcardDefaultData[0].pledge
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__face__stats card__face__stats--weight' },
+                          'Weight',
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__face__stats__weight' },
+                            _react2.default.createElement(
+                              'span',
+                              { 'ng-show': 'card.weight < 60' },
+                              'Light'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { 'ng-show': 'card.weight > 60' },
+                              'Heavy'
+                            )
+                          )
+                        )
+                      )
+                    ),
+                    _react2.default.createElement(
+                      'div',
+                      { className: 'card__part__side m--front' },
+                      _react2.default.createElement(
+                        'div',
+                        { className: 'card__sender' },
+                        _react2.default.createElement(
+                          'h4',
+                          { className: 'card__sender__heading' },
+                          'Sender'
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__sender__img-cont' },
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__sender__img-cont__inner' },
+                            _react2.default.createElement('img', { 'ng-src': '{{card.senderImg}}', className: 'card__sender__img' })
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__sender__name-and-rating' },
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__sender__name' },
+                            delivcardDefaultData[0].sender
+                          ),
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__sender__rating card__sender__rating-{{card.rating}}' },
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__star' },
+                              '\u2605'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__star' },
+                              '\u2605'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__star' },
+                              '\u2605'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__star' },
+                              '\u2605'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__star' },
+                              '\u2605'
+                            ),
+                            _react2.default.createElement(
+                              'span',
+                              { className: 'card__sender__rating__count' },
+                              '(',
+                              delivcardDefaultData[0].ratingCount,
+                              ')'
+                            )
+                          ),
+                          _react2.default.createElement(
+                            'p',
+                            { className: 'card__sender__address' },
+                            delivcardDefaultData[0].fromStreet,
+                            ', ',
+                            delivcardDefaultData[0].fromCity
+                          )
+                        ),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__receiver' },
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__receiver__inner' },
+                            _react2.default.createElement(
+                              'div',
+                              { className: 'card__sender__img-cont' },
+                              _react2.default.createElement(
+                                'div',
+                                { className: 'card__sender__img-cont__inner' },
+                                _react2.default.createElement('img', { 'ng-src': '{{card.senderImg}}', className: 'card__sender__img' })
+                              )
+                            ),
+                            _react2.default.createElement(
+                              'div',
+                              { className: 'card__sender__name-and-rating' },
+                              _react2.default.createElement(
+                                'p',
+                                { className: 'card__sender__name' },
+                                delivcardDefaultData[0].sender
+                              ),
+                              _react2.default.createElement(
+                                'p',
+                                { className: 'card__sender__address' },
+                                delivcardDefaultData[0].toStreet,
+                                ', ',
+                                delivcardDefaultData[0].toCity
+                              )
+                            )
+                          )
+                        ),
+                        _react2.default.createElement('div', { className: 'card__path-big' })
+                      ),
+                      _react2.default.createElement(
+                        'div',
+                        { className: 'card__from-to' },
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__from-to__inner' },
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__text card__text--left' },
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__heading' },
+                              'From'
+                            ),
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__middle' },
+                              delivcardDefaultData[0].fromStreet
+                            ),
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__bottom' },
+                              delivcardDefaultData[0].fromCity
+                            )
+                          ),
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__text card__text--right' },
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__heading' },
+                              'To'
+                            ),
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__middle' },
+                              delivcardDefaultData[0].toStreet
+                            ),
+                            _react2.default.createElement(
+                              'p',
+                              { className: 'card__text__bottom' },
+                              delivcardDefaultData[0].toCity
+                            )
+                          )
+                        )
+                      ),
+                      _react2.default.createElement(
+                        'section',
+                        { className: 'card__part card__part-3' },
+                        _react2.default.createElement('div', { className: 'card__part__side m--back' }),
+                        _react2.default.createElement(
+                          'div',
+                          { className: 'card__part__side m--front' },
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__timings' },
+                            _react2.default.createElement(
+                              'div',
+                              { className: 'card__timings__inner' },
+                              _react2.default.createElement(
+                                'div',
+                                { className: 'card__text card__text--left' },
+                                _react2.default.createElement(
+                                  'p',
+                                  { className: 'card__text__heading' },
+                                  'Delivery Date'
+                                ),
+                                _react2.default.createElement(
+                                  'p',
+                                  { className: 'card__text__middle' },
+                                  delivcardDefaultData[0].delivTime
+                                ),
+                                _react2.default.createElement(
+                                  'p',
+                                  { className: 'card__text__bottom' },
+                                  delivcardDefaultData[0].delivTime
+                                )
+                              ),
+                              _react2.default.createElement(
+                                'div',
+                                { className: 'card__text card__text--right' },
+                                _react2.default.createElement(
+                                  'p',
+                                  { className: 'card__text__heading' },
+                                  'Request Deadline'
+                                ),
+                                _react2.default.createElement(
+                                  'p',
+                                  { className: 'card__text__middle' },
+                                  delivcardDefaultData[0].reqDl
+                                )
+                              )
+                            )
+                          ),
+                          _react2.default.createElement(
+                            'div',
+                            { className: 'card__timer' },
+                            '60 min 00 sec'
+                          ),
+                          _react2.default.createElement(
+                            'section',
+                            { className: 'card__part card__part-4' },
+                            _react2.default.createElement('div', { className: 'card__part__side m--back' }),
+                            _react2.default.createElement(
+                              'div',
+                              { className: 'card__part__side m--front' },
+                              _react2.default.createElement(
+                                'button',
+                                { type: 'button', className: 'card__request-btn' },
+                                _react2.default.createElement(
+                                  'span',
+                                  { className: 'card__request-btn__text-1' },
+                                  'Request'
+                                ),
+                                _react2.default.createElement(
+                                  'span',
+                                  { className: 'card__request-btn__text-2' },
+                                  'Start'
+                                )
+                              ),
+                              _react2.default.createElement(
+                                'p',
+                                { className: 'card__counter' },
+                                delivcardDefaultData[0].requests,
+                                ' people have sent a request'
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return Explor;
+}(_PageManager3.default);
+
+exports.default = Explor;
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1949,7 +2750,7 @@ var _AbstractModel = __webpack_require__(1);
 
 var _AbstractModel2 = _interopRequireDefault(_AbstractModel);
 
-__webpack_require__(29);
+__webpack_require__(35);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1996,7 +2797,7 @@ var Login = function (_Component) {
     key: 'componentWillMount',
     value: function componentWillMount() {
       var isLogin = _AbstractModel2.default.getCurrentUser();
-      if (isLogin) this.props.history.push('viewPersonalAccount');
+      if (isLogin) this.props.history.push('myMoments');
     }
     // 获取用户名
 
@@ -2094,6 +2895,7 @@ var Login = function (_Component) {
         alert('用户名不能为空');
         return;
       }
+      console.log(registerPassword);
       if (registerPassword === '') {
         alert('密码不能为空');
         return;
@@ -2158,7 +2960,11 @@ var Login = function (_Component) {
           _react2.default.createElement(
             'div',
             { className: 'input' },
-            _react2.default.createElement('input', { className: 'main-form btn', type: 'button', value: '\u767B\u5F55', onClick: this.loginFn })
+            _react2.default.createElement(
+              'div',
+              { className: 'main-form btn', onClick: this.loginFn },
+              '\u767B\u5F55'
+            )
           )
         )
       );
@@ -2171,22 +2977,22 @@ var Login = function (_Component) {
           _react2.default.createElement(
             'div',
             { className: 'input' },
-            _react2.default.createElement('input', { className: 'main-form', type: 'text', placeholder: ' \u7528\u6237\u540D', onChange: this.registeruserNmaehandleChange })
+            _react2.default.createElement('input', { className: 'main-form', type: 'text', placeholder: '\u7528\u6237\u540D', onChange: this.registeruserNmaehandleChange })
           ),
           _react2.default.createElement(
             'div',
             { className: 'input' },
-            _react2.default.createElement('input', { className: 'main-form', type: 'text', placeholder: ' \u624B\u673A\u53F7', onChange: this.registerPhonehandleChange })
+            _react2.default.createElement('input', { className: 'main-form', type: 'text', placeholder: '\u624B\u673A\u53F7', onChange: this.registerPhonehandleChange })
           ),
           _react2.default.createElement(
             'div',
             { className: 'input' },
-            _react2.default.createElement('input', { className: 'main-form', type: 'password', placeholder: ' \u5BC6\u7801', onChange: this.registerpwdhandleChange })
+            _react2.default.createElement('input', { className: 'main-form', type: 'password', placeholder: '\u5BC6\u7801', onChange: this.registerpwdhandleChange })
           ),
           _react2.default.createElement(
             'div',
             { className: 'input' },
-            _react2.default.createElement('input', { className: 'main-form', type: 'password', placeholder: ' \u786E\u8BA4\u5BC6\u7801', onChange: this.rePwdhandleChange })
+            _react2.default.createElement('input', { className: 'main-form', type: 'password', placeholder: '\u786E\u8BA4\u5BC6\u7801', onChange: this.rePwdhandleChange })
           ),
           _react2.default.createElement(
             'div',
@@ -2201,7 +3007,7 @@ var Login = function (_Component) {
         { className: 'Login' },
         _react2.default.createElement(
           'div',
-          { className: 'container' },
+          null,
           _react2.default.createElement(
             'ul',
             { className: 'tabs' },
@@ -2228,7 +3034,7 @@ var Login = function (_Component) {
 exports.default = Login;
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2258,7 +3064,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(30);
+__webpack_require__(36);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2646,7 +3452,7 @@ var Moments = function (_PageManager) {
 exports.default = Moments;
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2676,7 +3482,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(31);
+__webpack_require__(37);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3130,7 +3936,606 @@ var MyAccount = function (_PageManager) {
 exports.default = MyAccount;
 
 /***/ }),
-/* 16 */
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(4);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _index = __webpack_require__(2);
+
+var _AbstractModel = __webpack_require__(1);
+
+var _AbstractModel2 = _interopRequireDefault(_AbstractModel);
+
+var _PageManager2 = __webpack_require__(3);
+
+var _PageManager3 = _interopRequireDefault(_PageManager2);
+
+__webpack_require__(38);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var MyMoments = function (_PageManager) {
+  _inherits(MyMoments, _PageManager);
+
+  function MyMoments(props) {
+    _classCallCheck(this, MyMoments);
+
+    var _this = _possibleConstructorReturn(this, (MyMoments.__proto__ || Object.getPrototypeOf(MyMoments)).call(this, props));
+
+    _this.state = {
+      isDataReady: true,
+      isShowloading: false,
+      fileName: '',
+      accountType: 0, //论文还是学术圈
+      titleValue: '',
+      descriptionValue: '',
+      typeValue: '',
+      momentText: '',
+      momentLink: '',
+      momentLinkDesc: '',
+      momentsList: [],
+      wordLists: []
+    };
+    _this.initialMoment = [];
+    _this.initialPaper = [];
+    _this.userId = '';
+    _this.uploadFile = _this.uploadFile.bind(_this);
+    _this.logOutFn = _this.logOutFn.bind(_this);
+    _this.viewWordList = _this.viewWordList.bind(_this);
+    _this.getPaperList = _this.getPaperList.bind(_this);
+    _this.changeInput = _this.changeInput.bind(_this);
+    _this.createxmlhttp = _this.createxmlhttp.bind(_this);
+    _this.saveWordListsFn = _this.saveWordListsFn.bind(_this);
+    ['titleHandleChange', 'descriptionHandleChange', 'typeHandleChange', 'momentTextHandleChange', 'momentLinkHandleChange', 'momentLinkDescHandleChange'].forEach(function (method) {
+      _this[method] = _this[method].bind(_this);
+    });
+
+    return _this;
+  }
+
+  _createClass(MyMoments, [{
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      this.getPaperList();
+    }
+    // 获取用户上传的论文列表
+
+  }, {
+    key: 'getPaperList',
+    value: function getPaperList() {
+      var _this2 = this;
+
+      var isLogin = _AbstractModel2.default.getCurrentUser();
+      if (!isLogin) {
+        this.props.history.push('login');
+        return;
+      }
+
+      this.setState({
+        username: isLogin.attributes.username,
+        school: isLogin.attributes.school,
+        department: isLogin.attributes.department,
+        major: isLogin.attributes.major,
+        adminYear: isLogin.attributes.adminYear,
+        researchField: isLogin.attributes.researchField
+      });
+      this.userId = isLogin.id;
+      var params = {
+        objectId: this.userId
+      };
+      console.log(isLogin);
+      _AbstractModel2.default.getPaperList(params, function (data) {
+        if (data.length > 0) {
+          _this2.initialPaper = data;
+          _this2.setState({
+            isDataReady: false,
+            wordLists: _this2.initialPaper
+          });
+        } else {
+          _this2.setState({
+            isDataReady: false
+          });
+        }
+      }, function (error) {
+        console.log(error);
+      });
+
+      var momentsParams = {
+        userId: this.userId
+      };
+      _AbstractModel2.default.getMomentsList(momentsParams, function (data) {
+        _this2.initialMoment = data;
+        _this2.setState({
+          momentsList: _this2.initialMoment
+        });
+      }, function (error) {});
+    }
+    // 上传论文
+
+  }, {
+    key: 'uploadFile',
+    value: function uploadFile() {
+      var _this3 = this;
+
+      this.setState({
+        isShowloading: true
+      });
+      var fileInput = _reactDom2.default.findDOMNode(this.refs.paperFile);
+      if (fileInput.files.length > 0) {
+        var params = {
+          localFile: fileInput.files[0],
+          name: fileInput.files[0].name
+        };
+        _AbstractModel2.default.uploadFile(params, function (progress) {
+          console.log(progress.loaded);
+        }, function (file) {
+          _this3.savePaperFile(file.url(), file.attributes.name);
+        }, function (error) {
+          console.log(error);
+        });
+      }
+    }
+    // 保存上传的作品
+
+  }, {
+    key: 'savePaperFile',
+    value: function savePaperFile(fileUrl, name) {
+      var _this4 = this;
+
+      //paperKeyword
+      //paperDescription
+      var params = {
+        userId: this.userId,
+        fileUrl: fileUrl,
+        paperTitle: this.state.titleValue,
+        paperDescription: this.state.descriptionValue,
+        keyWords: [this.state.typeValue]
+      };
+      _AbstractModel2.default.savePaper(params, function (data) {
+        _this4.initialPaper.push(data);
+
+        _this4.paperId = data.id;
+        _this4.createxmlhttp(fileUrl);
+      }, function (error) {
+        console.log(error);
+      });
+    }
+    // 请求翻译接口
+
+  }, {
+    key: 'createxmlhttp',
+    value: function createxmlhttp(url) {
+      var self = this;
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+          var resultData = xmlhttp.responseText.replace(/NaN/g, '1'); //JSON.parse(xmlhttp.responseText)
+          //xmlhttp.responseText.replace(/NaN/g,'1');
+          window.localStorage.setItem('wordList', resultData);
+          resultData = JSON.parse(resultData);
+          resultData = resultData.result.wordList;
+          self.saveWordListsFn(resultData);
+        }
+      };
+      xmlhttp.open("POST", "http://218.193.131.251:54321", true);
+      xmlhttp.send('p=' + url);
+    }
+    // 保存单词
+
+  }, {
+    key: 'saveWordListsFn',
+    value: function saveWordListsFn(wordList) {
+      var _this5 = this;
+
+      var params = {
+        userId: this.userId,
+        show: true,
+        paperId: this.paperId,
+        wordList: wordList
+      };
+      this.savPaperId(this.paperId);
+      _AbstractModel2.default.saveWordLists(params, function (data) {
+
+        // window.localStorage.setItem('WordListsId', data.id);
+        // this.forward('myWordList/'+ this.paperId);
+        // 刷新当前页面
+        _this5.setState({
+          wordLists: _this5.initialPaper,
+          isShowloading: false
+        });
+      }, function (error) {
+        console.log(error);
+      });
+    }
+    // 退出登录
+
+  }, {
+    key: 'logOutFn',
+    value: function logOutFn() {
+      _AbstractModel2.default.logOut();
+      this.props.history.push('login');
+    }
+    // 查看属于此论文的单词列表
+
+  }, {
+    key: 'viewWordList',
+    value: function viewWordList(objectId) {
+      this.savPaperId(objectId);
+      this.forward('myWordList/' + objectId);
+    }
+    // 存储paperId
+
+  }, {
+    key: 'savPaperId',
+    value: function savPaperId(id) {
+      window.localStorage.setItem('paperId', id);
+    }
+    // 选择文件事件
+
+  }, {
+    key: 'changeInput',
+    value: function changeInput(e) {
+      var obj = e.target.files;
+      if (obj.length > 0) {
+        this.setState({
+          fileName: obj[0].name,
+          titleValue: obj[0].name
+        });
+      }
+    }
+    // 打开pdf预览
+
+  }, {
+    key: 'openNewView',
+    value: function openNewView(url) {
+      if (url) window.open(url, '_blank');
+    }
+    // 格式化日期
+
+  }, {
+    key: 'formatDate',
+    value: function formatDate(date, formater) {
+      // 不是Date类型，formater不是string的一律返回空字符串
+      if (!(date instanceof Date) || typeof formater !== 'string') {
+        return '';
+      }
+      // 默认是'yyyy-MM-dd'格式
+      formater = formater || 'yyyy-MM-dd';
+      var o = {
+        'M+': date.getMonth() + 1, // month
+        'd+': date.getDate(), // day
+        'h+': date.getHours(), // hour
+        'm+': date.getMinutes(), // minute
+        's+': date.getSeconds(), // second
+        'q+': Math.floor((date.getMonth() + 3) / 3), // quarter
+        'S': date.getMilliseconds() // millisecond
+      };
+      var week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      if (/(y+)/.test(formater)) {
+        formater = formater.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+      }
+      if (/(w+)/.test(formater)) {
+        formater = formater.replace(RegExp.$1, week[date.getDay()]);
+      }
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = Object.keys(o)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var k = _step.value;
+
+          if (new RegExp('(' + k + ')').test(formater)) {
+            formater = formater.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length));
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return formater;
+    }
+  }, {
+    key: 'vocabulary',
+    value: function vocabulary() {
+      this.props.history.push('vocabulary');
+    }
+  }, {
+    key: 'editProfile',
+    value: function editProfile() {
+      this.props.history.push('editProfile');
+    }
+  }, {
+    key: 'moments',
+    value: function moments() {
+      this.props.history.push('moments');
+    }
+  }, {
+    key: 'switchWordType',
+    value: function switchWordType(index) {
+      if (index === this.state.accountType) return;
+      this.setState({
+        accountType: index // 0论文  1 学术圈
+      });
+    }
+  }, {
+    key: 'titleHandleChange',
+    value: function titleHandleChange() {
+      this.setState({ titleValue: event.target.value });
+    }
+  }, {
+    key: 'descriptionHandleChange',
+    value: function descriptionHandleChange() {
+      this.setState({ descriptionValue: event.target.value });
+    }
+  }, {
+    key: 'typeHandleChange',
+    value: function typeHandleChange() {
+      this.setState({ typeValue: event.target.value });
+    }
+  }, {
+    key: 'momentTextHandleChange',
+    value: function momentTextHandleChange() {
+      this.setState({ momentText: event.target.value });
+    }
+  }, {
+    key: 'momentLinkHandleChange',
+    value: function momentLinkHandleChange() {
+      this.setState({ momentLink: event.target.value });
+    }
+  }, {
+    key: 'momentLinkDescHandleChange',
+    value: function momentLinkDescHandleChange() {
+      this.setState({ momentLinkDesc: event.target.value });
+    }
+  }, {
+    key: 'uploadMoment',
+    value: function uploadMoment() {
+      var _this6 = this;
+
+      var params = {
+        userId: this.userId,
+        momentText: this.state.momentText,
+        momentLink: this.state.momentLink,
+        momentLinkDesc: this.state.momentLinkDesc
+      };
+      if (!(this.state.momentText || this.state.momentLink || this.state.momentLinkDesc)) {
+        alert('请输入');
+        return;
+      }
+
+      _AbstractModel2.default.saveMoments(params, function (data) {
+        //刷新当前页面
+        // window.location.reload()
+
+
+        _this6.initialMoment.push(data);
+        _this6.setState({
+          momentsList: _this6.initialMoment
+        });
+      }, function (error) {});
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this7 = this;
+
+      if (this.state.isDataReady) return _react2.default.createElement(_index.Loading, null);
+      var _state = this.state,
+          fileName = _state.fileName,
+          username = _state.username,
+          school = _state.school,
+          department = _state.department,
+          major = _state.major,
+          adminYear = _state.adminYear,
+          researchField = _state.researchField,
+          _state$wordLists = _state.wordLists,
+          wordLists = _state$wordLists === undefined ? [] : _state$wordLists,
+          isShowloading = _state.isShowloading,
+          momentsList = _state.momentsList;
+      // 头部数据
+
+      var navBarData = {
+        title: '高校圈',
+        label: {
+          text: '退出登陆',
+          callback: function callback() {
+            _this7.logOutFn();
+          }
+        },
+        imgUrl: 'http://www.sucaijishi.com/uploadfile/2014/0524/20140524012047988.png'
+      };
+
+      var momentsListData = [];
+      momentsList.map(function (value) {
+        var temp = {
+          time: _this7.formatDate(value.createdAt, 'yyyy-MM-dd'),
+          momentText: value.attributes.momentText,
+          momentLink: value.attributes.momentLink,
+          momentLinkDesc: value.attributes.momentLinkDesc
+        };
+        momentsListData.push(temp);
+      });
+
+      momentsListData = momentsListData.reverse();
+
+      var userCard = _react2.default.createElement(
+        'div',
+        { className: 'user-car' },
+        _react2.default.createElement('img', { className: 'user-img', src: 'http://www.sucaijishi.com/uploadfile/2014/0524/20140524012047988.png' }),
+        _react2.default.createElement(
+          'h1',
+          null,
+          username
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            school
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            department
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            major
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            adminYear
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            '\u5173\u6CE8\u9886\u57DF'
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            researchField
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz', onClick: this.editProfile.bind(this) },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            '\u4FEE\u6539\u4E2A\u4EBA\u4FE1\u606F'
+          ),
+          _react2.default.createElement('span', null)
+        )
+      );
+
+      return _react2.default.createElement(
+        'div',
+        { className: 'ViewPersonalAccount' },
+        _react2.default.createElement(_index.NavBar, navBarData),
+        _react2.default.createElement(
+          'section',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'div',
+            { className: 'left' },
+            userCard,
+            _react2.default.createElement(
+              'div',
+              { className: 'paperInfoContainer' },
+              _react2.default.createElement(
+                'div',
+                { className: 'container' },
+                _react2.default.createElement(
+                  'form',
+                  null,
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.momentTextHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8F93\u5165\u6587\u5B57'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.momentLinkHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8F93\u5165\u94FE\u63A5'
+                    )
+                  )
+                )
+              ),
+              _react2.default.createElement(
+                'div',
+                { className: 'flex-init file-btn', onClick: this.uploadMoment.bind(this) },
+                _react2.default.createElement('i', { className: 'iconfont icon-shangchuan1' }),
+                _react2.default.createElement(
+                  'span',
+                  null,
+                  '\u53D1\u5E03'
+                )
+              )
+            )
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: 'flex-full right' },
+            _react2.default.createElement(_index.MomentsLine, { items: momentsListData })
+          )
+        ),
+        isShowloading ? _react2.default.createElement(_index.Loading, null) : null
+      );
+    }
+  }]);
+
+  return MyMoments;
+}(_PageManager3.default);
+
+exports.default = MyMoments;
+
+/***/ }),
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3156,7 +4561,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(32);
+__webpack_require__(39);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3366,7 +4771,7 @@ var MyWordList = function (_PageManager) {
 exports.default = MyWordList;
 
 /***/ }),
-/* 17 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3396,7 +4801,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(33);
+__webpack_require__(40);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3406,13 +4811,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var ViewPersonalAccount = function (_PageManager) {
-  _inherits(ViewPersonalAccount, _PageManager);
+var PaperTrans = function (_PageManager) {
+  _inherits(PaperTrans, _PageManager);
 
-  function ViewPersonalAccount(props) {
-    _classCallCheck(this, ViewPersonalAccount);
+  function PaperTrans(props) {
+    _classCallCheck(this, PaperTrans);
 
-    var _this = _possibleConstructorReturn(this, (ViewPersonalAccount.__proto__ || Object.getPrototypeOf(ViewPersonalAccount)).call(this, props));
+    var _this = _possibleConstructorReturn(this, (PaperTrans.__proto__ || Object.getPrototypeOf(PaperTrans)).call(this, props));
 
     _this.state = {
       isDataReady: true,
@@ -3426,9 +4831,10 @@ var ViewPersonalAccount = function (_PageManager) {
       momentLink: '',
       momentLinkDesc: '',
       momentsList: [],
-      momentsListDataNow: {}
+      wordLists: []
     };
-    _this.initialMoments = [];
+    _this.initialMoment = [];
+    _this.initialPaper = [];
     _this.userId = '';
     _this.uploadFile = _this.uploadFile.bind(_this);
     _this.logOutFn = _this.logOutFn.bind(_this);
@@ -3444,7 +4850,7 @@ var ViewPersonalAccount = function (_PageManager) {
     return _this;
   }
 
-  _createClass(ViewPersonalAccount, [{
+  _createClass(PaperTrans, [{
     key: 'componentWillMount',
     value: function componentWillMount() {
       this.getPaperList();
@@ -3461,21 +4867,26 @@ var ViewPersonalAccount = function (_PageManager) {
         this.props.history.push('login');
         return;
       }
+
+      this.setState({
+        username: isLogin.attributes.username,
+        school: isLogin.attributes.school,
+        department: isLogin.attributes.department,
+        major: isLogin.attributes.major,
+        adminYear: isLogin.attributes.adminYear,
+        researchField: isLogin.attributes.researchField
+      });
       this.userId = isLogin.id;
       var params = {
         objectId: this.userId
       };
+      console.log(isLogin);
       _AbstractModel2.default.getPaperList(params, function (data) {
         if (data.length > 0) {
+          _this2.initialPaper = data;
           _this2.setState({
             isDataReady: false,
-            username: isLogin.attributes.username,
-            school: isLogin.attributes.school,
-            department: isLogin.attributes.department,
-            major: isLogin.attributes.major,
-            adminYear: isLogin.attributes.adminYear,
-            researchField: isLogin.attributes.researchField,
-            wordLists: data
+            wordLists: _this2.initialPaper
           });
         } else {
           _this2.setState({
@@ -3490,8 +4901,9 @@ var ViewPersonalAccount = function (_PageManager) {
         userId: this.userId
       };
       _AbstractModel2.default.getMomentsList(momentsParams, function (data) {
+        _this2.initialMoment = data;
         _this2.setState({
-          momentsList: data
+          momentsList: _this2.initialMoment
         });
       }, function (error) {});
     }
@@ -3536,13 +4948,10 @@ var ViewPersonalAccount = function (_PageManager) {
         paperDescription: this.state.descriptionValue,
         keyWords: [this.state.typeValue]
       };
-      console.log('*********');
-      console.log(params);
       _AbstractModel2.default.savePaper(params, function (data) {
+        _this4.initialPaper.push(data);
+
         _this4.paperId = data.id;
-        // this.setState({
-        //   isShowloading: false,
-        // });
         _this4.createxmlhttp(fileUrl);
       }, function (error) {
         console.log(error);
@@ -3584,12 +4993,661 @@ var ViewPersonalAccount = function (_PageManager) {
       this.savPaperId(this.paperId);
       _AbstractModel2.default.saveWordLists(params, function (data) {
 
-        window.localStorage.setItem('WordListsId', data.id);
-        _this5.forward('myWordList/' + _this5.paperId);
+        // window.localStorage.setItem('WordListsId', data.id);
+        // this.forward('myWordList/'+ this.paperId);
         // 刷新当前页面
-        // this.setState({
-        //   isShowloading: false,
-        // });
+        _this5.setState({
+          wordLists: _this5.initialPaper,
+          isShowloading: false
+        });
+      }, function (error) {
+        console.log(error);
+      });
+    }
+    // 退出登录
+
+  }, {
+    key: 'logOutFn',
+    value: function logOutFn() {
+      _AbstractModel2.default.logOut();
+      this.props.history.push('login');
+    }
+    // 查看属于此论文的单词列表
+
+  }, {
+    key: 'viewWordList',
+    value: function viewWordList(objectId) {
+      this.savPaperId(objectId);
+      this.forward('myWordList/' + objectId);
+    }
+    // 存储paperId
+
+  }, {
+    key: 'savPaperId',
+    value: function savPaperId(id) {
+      window.localStorage.setItem('paperId', id);
+    }
+    // 选择文件事件
+
+  }, {
+    key: 'changeInput',
+    value: function changeInput(e) {
+      var obj = e.target.files;
+      if (obj.length > 0) {
+        this.setState({
+          fileName: obj[0].name,
+          titleValue: obj[0].name
+        });
+      }
+    }
+    // 打开pdf预览
+
+  }, {
+    key: 'openNewView',
+    value: function openNewView(url) {
+      if (url) window.open(url, '_blank');
+    }
+    // 格式化日期
+
+  }, {
+    key: 'formatDate',
+    value: function formatDate(date, formater) {
+      // 不是Date类型，formater不是string的一律返回空字符串
+      if (!(date instanceof Date) || typeof formater !== 'string') {
+        return '';
+      }
+      // 默认是'yyyy-MM-dd'格式
+      formater = formater || 'yyyy-MM-dd';
+      var o = {
+        'M+': date.getMonth() + 1, // month
+        'd+': date.getDate(), // day
+        'h+': date.getHours(), // hour
+        'm+': date.getMinutes(), // minute
+        's+': date.getSeconds(), // second
+        'q+': Math.floor((date.getMonth() + 3) / 3), // quarter
+        'S': date.getMilliseconds() // millisecond
+      };
+      var week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      if (/(y+)/.test(formater)) {
+        formater = formater.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+      }
+      if (/(w+)/.test(formater)) {
+        formater = formater.replace(RegExp.$1, week[date.getDay()]);
+      }
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = Object.keys(o)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var k = _step.value;
+
+          if (new RegExp('(' + k + ')').test(formater)) {
+            formater = formater.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length));
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return formater;
+    }
+  }, {
+    key: 'vocabulary',
+    value: function vocabulary() {
+      this.props.history.push('vocabulary');
+    }
+  }, {
+    key: 'editProfile',
+    value: function editProfile() {
+      this.props.history.push('editProfile');
+    }
+  }, {
+    key: 'moments',
+    value: function moments() {
+      this.props.history.push('moments');
+    }
+  }, {
+    key: 'switchWordType',
+    value: function switchWordType(index) {
+      if (index === this.state.accountType) return;
+      this.setState({
+        accountType: index // 0论文  1 学术圈
+      });
+    }
+  }, {
+    key: 'titleHandleChange',
+    value: function titleHandleChange() {
+      this.setState({ titleValue: event.target.value });
+    }
+  }, {
+    key: 'descriptionHandleChange',
+    value: function descriptionHandleChange() {
+      this.setState({ descriptionValue: event.target.value });
+    }
+  }, {
+    key: 'typeHandleChange',
+    value: function typeHandleChange() {
+      this.setState({ typeValue: event.target.value });
+    }
+  }, {
+    key: 'momentTextHandleChange',
+    value: function momentTextHandleChange() {
+      this.setState({ momentText: event.target.value });
+    }
+  }, {
+    key: 'momentLinkHandleChange',
+    value: function momentLinkHandleChange() {
+      this.setState({ momentLink: event.target.value });
+    }
+  }, {
+    key: 'momentLinkDescHandleChange',
+    value: function momentLinkDescHandleChange() {
+      this.setState({ momentLinkDesc: event.target.value });
+    }
+  }, {
+    key: 'uploadMoment',
+    value: function uploadMoment() {
+      var _this6 = this;
+
+      var params = {
+        userId: this.userId,
+        momentText: this.state.momentText,
+        momentLink: this.state.momentLink,
+        momentLinkDesc: this.state.momentLinkDesc
+      };
+      if (!(this.state.momentText || this.state.momentLink || this.state.momentLinkDesc)) {
+        alert('请输入');
+        return;
+      }
+
+      _AbstractModel2.default.saveMoments(params, function (data) {
+        //刷新当前页面
+        // window.location.reload()
+
+
+        _this6.initialMoment.push(data);
+        _this6.setState({
+          momentsList: _this6.initialMoment
+        });
+      }, function (error) {});
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this7 = this;
+
+      if (this.state.isDataReady) return _react2.default.createElement(_index.Loading, null);
+      var _state = this.state,
+          fileName = _state.fileName,
+          username = _state.username,
+          school = _state.school,
+          department = _state.department,
+          major = _state.major,
+          adminYear = _state.adminYear,
+          researchField = _state.researchField,
+          _state$wordLists = _state.wordLists,
+          wordLists = _state$wordLists === undefined ? [] : _state$wordLists,
+          isShowloading = _state.isShowloading,
+          momentsList = _state.momentsList;
+      // 头部数据
+
+      var navBarData = {
+        title: '论文助手',
+        label: {
+          text: '退出登陆',
+          callback: function callback() {
+            _this7.logOutFn();
+          }
+        },
+        imgUrl: 'http://www.sucaijishi.com/uploadfile/2014/0524/20140524012047988.png'
+      };
+      // 论文列表
+      var wordLineData = [];
+      wordLists.map(function (value) {
+        var temp = {
+          time: _this7.formatDate(value.createdAt, 'yyyy-MM-dd'),
+          paperTitle: value.attributes.paperTitle,
+          content: value.attributes.paperDescription,
+          keyWords: value.attributes.keyWords,
+          btns: [{
+            label: '查看全文',
+            callback: function callback() {
+              _this7.openNewView(value.attributes.fileUrl);
+            }
+          }, {
+            label: '查看单词',
+            callback: function callback() {
+              _this7.viewWordList(value.id);
+            }
+          }]
+        };
+        wordLineData.push(temp);
+      });
+      wordLineData = wordLineData.reverse();
+
+      var userCard = _react2.default.createElement(
+        'div',
+        { className: 'user-car' },
+        _react2.default.createElement('img', { className: 'user-img', src: 'http://www.sucaijishi.com/uploadfile/2014/0524/20140524012047988.png' }),
+        _react2.default.createElement(
+          'h1',
+          null,
+          username
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            school
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            department
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            major
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            adminYear
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            '\u5173\u6CE8\u9886\u57DF'
+          ),
+          _react2.default.createElement(
+            'span',
+            null,
+            researchField
+          )
+        ),
+        _react2.default.createElement(
+          'p',
+          { className: 'flex-hrz', onClick: this.editProfile.bind(this) },
+          _react2.default.createElement(
+            'span',
+            null,
+            _react2.default.createElement('i', { className: 'iconfont icon-coordinates_fill' }),
+            '\u4FEE\u6539\u4E2A\u4EBA\u4FE1\u606F'
+          ),
+          _react2.default.createElement('span', null)
+        )
+      );
+
+      return _react2.default.createElement(
+        'div',
+        { className: 'ViewPersonalAccount' },
+        _react2.default.createElement(_index.NavBar, navBarData),
+        _react2.default.createElement(
+          'section',
+          { className: 'flex-hrz' },
+          _react2.default.createElement(
+            'div',
+            { className: 'left' },
+            userCard,
+            _react2.default.createElement(
+              'ul',
+              { className: 'flex-hrz paper-info', onClick: this.vocabulary.bind(this) },
+              _react2.default.createElement(
+                'li',
+                { className: 'flex-full border-left-line' },
+                _react2.default.createElement(
+                  'p',
+                  null,
+                  '\u67E5\u770B\u6240\u6709\u751F\u8BCD'
+                )
+              )
+            ),
+            _react2.default.createElement(
+              'div',
+              { className: 'flex-hrz upload-paper' },
+              _react2.default.createElement(
+                'label',
+                { className: 'flex-full input-selector' },
+                _react2.default.createElement(
+                  'span',
+                  { className: 'input-description' },
+                  '\u9009\u62E9\u8981\u4E0A\u4F20\u7684\u6587\u4EF6'
+                ),
+                _react2.default.createElement('input', { type: 'file', ref: 'paperFile', onChange: this.changeInput })
+              )
+            ),
+            fileName ? _react2.default.createElement(
+              'div',
+              { className: 'paperInfoContainer' },
+              _react2.default.createElement(
+                'div',
+                { className: 'container' },
+                _react2.default.createElement(
+                  'form',
+                  null,
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.titleHandleChange, value: this.state.titleValue }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u6807\u9898'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.descriptionHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u8BC4\u8BBA'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.typeHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u7C7B\u578B'
+                    )
+                  )
+                )
+              ),
+              _react2.default.createElement(
+                'div',
+                { className: 'flex-init file-btn', onClick: this.uploadFile },
+                _react2.default.createElement('i', { className: 'iconfont icon-shangchuan1' }),
+                _react2.default.createElement(
+                  'span',
+                  null,
+                  '\u4E0A\u4F20'
+                )
+              )
+            ) : ''
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: 'flex-full right' },
+            _react2.default.createElement(_index.WordLine, { items: wordLineData })
+          )
+        ),
+        isShowloading ? _react2.default.createElement(_index.Loading, null) : null
+      );
+    }
+  }]);
+
+  return PaperTrans;
+}(_PageManager3.default);
+
+exports.default = PaperTrans;
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(4);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _index = __webpack_require__(2);
+
+var _AbstractModel = __webpack_require__(1);
+
+var _AbstractModel2 = _interopRequireDefault(_AbstractModel);
+
+var _PageManager2 = __webpack_require__(3);
+
+var _PageManager3 = _interopRequireDefault(_PageManager2);
+
+__webpack_require__(41);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ViewPersonalAccount = function (_PageManager) {
+  _inherits(ViewPersonalAccount, _PageManager);
+
+  function ViewPersonalAccount(props) {
+    _classCallCheck(this, ViewPersonalAccount);
+
+    var _this = _possibleConstructorReturn(this, (ViewPersonalAccount.__proto__ || Object.getPrototypeOf(ViewPersonalAccount)).call(this, props));
+
+    _this.state = {
+      isDataReady: true,
+      isShowloading: false,
+      fileName: '',
+      accountType: 0, //论文还是学术圈
+      titleValue: '',
+      descriptionValue: '',
+      typeValue: '',
+      momentText: '',
+      momentLink: '',
+      momentLinkDesc: '',
+      momentsList: [],
+      wordLists: []
+    };
+    _this.initialMoment = [];
+    _this.initialPaper = [];
+    _this.userId = '';
+    _this.uploadFile = _this.uploadFile.bind(_this);
+    _this.logOutFn = _this.logOutFn.bind(_this);
+    _this.viewWordList = _this.viewWordList.bind(_this);
+    _this.getPaperList = _this.getPaperList.bind(_this);
+    _this.changeInput = _this.changeInput.bind(_this);
+    _this.createxmlhttp = _this.createxmlhttp.bind(_this);
+    _this.saveWordListsFn = _this.saveWordListsFn.bind(_this);
+    ['titleHandleChange', 'descriptionHandleChange', 'typeHandleChange', 'momentTextHandleChange', 'momentLinkHandleChange', 'momentLinkDescHandleChange'].forEach(function (method) {
+      _this[method] = _this[method].bind(_this);
+    });
+
+    return _this;
+  }
+
+  _createClass(ViewPersonalAccount, [{
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      this.getPaperList();
+    }
+    // 获取用户上传的论文列表
+
+  }, {
+    key: 'getPaperList',
+    value: function getPaperList() {
+      var _this2 = this;
+
+      var isLogin = _AbstractModel2.default.getCurrentUser();
+      if (!isLogin) {
+        this.props.history.push('login');
+        return;
+      }
+
+      this.setState({
+        username: isLogin.attributes.username,
+        school: isLogin.attributes.school,
+        department: isLogin.attributes.department,
+        major: isLogin.attributes.major,
+        adminYear: isLogin.attributes.adminYear,
+        researchField: isLogin.attributes.researchField
+      });
+      this.userId = isLogin.id;
+      var params = {
+        objectId: this.userId
+      };
+      console.log(isLogin);
+      _AbstractModel2.default.getPaperList(params, function (data) {
+        if (data.length > 0) {
+          _this2.initialPaper = data;
+          _this2.setState({
+            isDataReady: false,
+            wordLists: _this2.initialPaper
+          });
+        } else {
+          _this2.setState({
+            isDataReady: false
+          });
+        }
+      }, function (error) {
+        console.log(error);
+      });
+
+      var momentsParams = {
+        userId: this.userId
+      };
+      _AbstractModel2.default.getMomentsList(momentsParams, function (data) {
+        _this2.initialMoment = data;
+        _this2.setState({
+          momentsList: _this2.initialMoment
+        });
+      }, function (error) {});
+    }
+    // 上传论文
+
+  }, {
+    key: 'uploadFile',
+    value: function uploadFile() {
+      var _this3 = this;
+
+      this.setState({
+        isShowloading: true
+      });
+      var fileInput = _reactDom2.default.findDOMNode(this.refs.paperFile);
+      if (fileInput.files.length > 0) {
+        var params = {
+          localFile: fileInput.files[0],
+          name: fileInput.files[0].name
+        };
+        _AbstractModel2.default.uploadFile(params, function (progress) {
+          console.log(progress.loaded);
+        }, function (file) {
+          _this3.savePaperFile(file.url(), file.attributes.name);
+        }, function (error) {
+          console.log(error);
+        });
+      }
+    }
+    // 保存上传的作品
+
+  }, {
+    key: 'savePaperFile',
+    value: function savePaperFile(fileUrl, name) {
+      var _this4 = this;
+
+      //paperKeyword
+      //paperDescription
+      var params = {
+        userId: this.userId,
+        fileUrl: fileUrl,
+        paperTitle: this.state.titleValue,
+        paperDescription: this.state.descriptionValue,
+        keyWords: [this.state.typeValue]
+      };
+      _AbstractModel2.default.savePaper(params, function (data) {
+        _this4.initialPaper.push(data);
+
+        _this4.paperId = data.id;
+        _this4.createxmlhttp(fileUrl);
+      }, function (error) {
+        console.log(error);
+      });
+    }
+    // 请求翻译接口
+
+  }, {
+    key: 'createxmlhttp',
+    value: function createxmlhttp(url) {
+      var self = this;
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+          var resultData = xmlhttp.responseText.replace(/NaN/g, '1'); //JSON.parse(xmlhttp.responseText)
+          //xmlhttp.responseText.replace(/NaN/g,'1');
+          window.localStorage.setItem('wordList', resultData);
+          resultData = JSON.parse(resultData);
+          resultData = resultData.result.wordList;
+          self.saveWordListsFn(resultData);
+        }
+      };
+      xmlhttp.open("POST", "http://218.193.131.251:54321", true);
+      xmlhttp.send('p=' + url);
+    }
+    // 保存单词
+
+  }, {
+    key: 'saveWordListsFn',
+    value: function saveWordListsFn(wordList) {
+      var _this5 = this;
+
+      var params = {
+        userId: this.userId,
+        show: true,
+        paperId: this.paperId,
+        wordList: wordList
+      };
+      this.savPaperId(this.paperId);
+      _AbstractModel2.default.saveWordLists(params, function (data) {
+
+        // window.localStorage.setItem('WordListsId', data.id);
+        // this.forward('myWordList/'+ this.paperId);
+        // 刷新当前页面
+        _this5.setState({
+          wordLists: _this5.initialPaper,
+          isShowloading: false
+        });
       }, function (error) {
         console.log(error);
       });
@@ -3762,14 +5820,15 @@ var ViewPersonalAccount = function (_PageManager) {
         alert('请输入');
         return;
       }
-      var momentsListDataArray = {
-        time: 'now',
-        paperTitle: params.momentText,
-        content: params.momentLink
-      };
+
       _AbstractModel2.default.saveMoments(params, function (data) {
+        //刷新当前页面
+        // window.location.reload()
+
+
+        _this6.initialMoment.push(data);
         _this6.setState({
-          momentsListDataNow: momentsListDataArray
+          momentsList: _this6.initialMoment
         });
       }, function (error) {});
     }
@@ -3810,6 +5869,7 @@ var ViewPersonalAccount = function (_PageManager) {
           time: _this7.formatDate(value.createdAt, 'yyyy-MM-dd'),
           paperTitle: value.attributes.paperTitle,
           content: value.attributes.paperDescription,
+          keyWords: value.attributes.keyWords,
           btns: [{
             label: '查看全文',
             callback: function callback() {
@@ -3830,22 +5890,13 @@ var ViewPersonalAccount = function (_PageManager) {
       momentsList.map(function (value) {
         var temp = {
           time: _this7.formatDate(value.createdAt, 'yyyy-MM-dd'),
-          paperTitle: value.attributes.momentText,
-          content: value.attributes.momentLink
+          momentText: value.attributes.momentText,
+          momentLink: value.attributes.momentLink,
+          momentLinkDesc: value.attributes.momentLinkDesc
         };
         momentsListData.push(temp);
       });
 
-      if (this.state.momentsListDataNow.time) {
-        if (!this.initialMoments.length) {
-          momentsListData.push(this.state.momentsListDataNow);
-        } else {
-          momentsListData = this.initialMoments;
-          momentsListData.push(this.state.momentsListDataNow);
-        }
-      }
-
-      this.initialMoments = momentsListData;
       momentsListData = momentsListData.reverse();
 
       var tabData = {
@@ -3966,23 +6017,47 @@ var ViewPersonalAccount = function (_PageManager) {
               { className: 'paperInfoContainer' },
               _react2.default.createElement(
                 'div',
-                null,
+                { className: 'container' },
                 _react2.default.createElement(
-                  'span',
+                  'form',
                   null,
-                  '\u8BBA\u6587\u6807\u9898'
-                ),
-                _react2.default.createElement('input', { className: 'paperInfo', type: 'text', value: this.state.titleValue, onChange: this.titleHandleChange })
-              ),
-              _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement('input', { className: 'paperInfo', type: 'text', placeholder: '\u8F93\u5165\u8BBA\u6587\u8BC4\u8BBA', onChange: this.descriptionHandleChange })
-              ),
-              _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement('input', { className: 'paperInfo', type: 'text', placeholder: '\u8F93\u5165\u8BBA\u6587\u7C7B\u578B', onChange: this.typeHandleChange })
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.titleHandleChange, value: this.state.titleValue }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u6807\u9898'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.descriptionHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u8BC4\u8BBA'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.typeHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8BBA\u6587\u7C7B\u578B'
+                    )
+                  )
+                )
               ),
               _react2.default.createElement(
                 'div',
@@ -4012,23 +6087,37 @@ var ViewPersonalAccount = function (_PageManager) {
               'div',
               { className: 'paperInfoContainer' },
               _react2.default.createElement(
-                'span',
-                null,
-                '\u8F93\u5165\u6587\u5B57'
+                'div',
+                { className: 'container' },
+                _react2.default.createElement(
+                  'form',
+                  null,
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.momentTextHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8F93\u5165\u6587\u5B57'
+                    )
+                  ),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'group' },
+                    _react2.default.createElement('input', { type: 'text', required: true, onChange: this.momentLinkHandleChange }),
+                    _react2.default.createElement('span', { className: 'highlight' }),
+                    _react2.default.createElement('span', { className: 'bar' }),
+                    _react2.default.createElement(
+                      'label',
+                      null,
+                      '\u8F93\u5165\u94FE\u63A5'
+                    )
+                  )
+                )
               ),
-              _react2.default.createElement('input', { className: 'paperInfo', type: 'text', placeholder: '\u8F93\u5165\u6587\u5B57', onChange: this.momentTextHandleChange }),
-              _react2.default.createElement(
-                'span',
-                null,
-                '\u94FE\u63A5'
-              ),
-              _react2.default.createElement('input', { className: 'paperInfo', type: 'text', placeholder: '\u4E0A\u4F20\u94FE\u63A5', onChange: this.momentLinkHandleChange }),
-              _react2.default.createElement(
-                'span',
-                null,
-                '\u94FE\u63A5\u63CF\u8FF0'
-              ),
-              _react2.default.createElement('input', { className: 'paperInfo', type: 'text', placeholder: '\u4E0A\u4F20\u94FE\u63A5', onChange: this.momentLinkDescHandleChange }),
               _react2.default.createElement(
                 'div',
                 { className: 'flex-init file-btn', onClick: this.uploadMoment.bind(this) },
@@ -4041,11 +6130,10 @@ var ViewPersonalAccount = function (_PageManager) {
               )
             )
           ),
-          '        ',
           _react2.default.createElement(
             'div',
             { className: 'flex-full right' },
-            _react2.default.createElement(_index.WordLine, { items: momentsListData })
+            _react2.default.createElement(_index.MomentsLine, { items: momentsListData })
           )
         ),
         isShowloading ? _react2.default.createElement(_index.Loading, null) : null
@@ -4059,7 +6147,7 @@ var ViewPersonalAccount = function (_PageManager) {
 exports.default = ViewPersonalAccount;
 
 /***/ }),
-/* 18 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4085,7 +6173,7 @@ var _PageManager2 = __webpack_require__(3);
 
 var _PageManager3 = _interopRequireDefault(_PageManager2);
 
-__webpack_require__(34);
+__webpack_require__(42);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4179,7 +6267,7 @@ var Vocabulary = function (_PageManager) {
     value: function findWord(index) {
       if (index !== '') {
         var temp = this.state.wordLists[index];
-        temp.familiar = true;
+        temp.familiar ? temp.familiar = false : temp.familiar = true;
         this.setState({
           wordList: this.state.wordLists
         });
@@ -4270,18 +6358,18 @@ var Vocabulary = function (_PageManager) {
 exports.default = Vocabulary;
 
 /***/ }),
-/* 19 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(35);
+__webpack_require__(43);
 
-__webpack_require__(36);
+__webpack_require__(44);
 
 /***/ }),
-/* 20 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4402,7 +6490,7 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 21 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4416,9 +6504,9 @@ function fromByteArray (uint8) {
 
 
 
-var base64 = __webpack_require__(20)
-var ieee754 = __webpack_require__(37)
-var isArray = __webpack_require__(38)
+var base64 = __webpack_require__(24)
+var ieee754 = __webpack_require__(45)
+var isArray = __webpack_require__(46)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -6196,31 +8284,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(41)))
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 23 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 25 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(49)))
 
 /***/ }),
 /* 26 */
@@ -6290,6 +8354,54 @@ function isnan (val) {
 
 /***/ }),
 /* 37 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 45 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -6379,7 +8491,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 38 */
+/* 46 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -6390,7 +8502,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 39 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, Buffer) {(function webpackUniversalModuleDefinition(root, factory) {
@@ -10468,7 +12580,7 @@ module.exports = localStorage;
 "use strict";
 
 
-module.exports = '2.5.0';
+module.exports = '2.5.1';
 
 /***/ }),
 /* 13 */
@@ -16190,12 +18302,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 var _ = __webpack_require__(0);
 var AVRequest = __webpack_require__(1).request;
 
+var _require = __webpack_require__(4),
+    getSessionToken = _require.getSessionToken;
+
 module.exports = function (AV) {
   var getUser = function getUser() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    return AV.User.currentAsync().then(function (currUser) {
-      return currUser || AV.User._fetchUserBySessionToken(options.sessionToken);
-    });
+
+    var sessionToken = getSessionToken(options);
+    if (sessionToken) {
+      return AV.User._fetchUserBySessionToken(getSessionToken(options));
+    }
+    return AV.User.currentAsync();
   };
 
   var getUserPointer = function getUserPointer(options) {
@@ -16288,7 +18406,7 @@ module.exports = function (AV) {
 
       var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-      if (!options.sessionToken && !AV.User.current()) {
+      if (!getSessionToken(options) && !AV.User.current()) {
         throw new Error('Please signin an user.');
       }
       if (!this.query) {
@@ -16345,7 +18463,7 @@ module.exports = function (AV) {
   AV.Status.sendStatusToFollowers = function (status) {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    if (!options.sessionToken && !AV.User.current()) {
+    if (!getSessionToken(options) && !AV.User.current()) {
       throw new Error('Please signin an user.');
     }
     return getUserPointer(options).then(function (currUser) {
@@ -16390,7 +18508,7 @@ module.exports = function (AV) {
   AV.Status.sendPrivateStatus = function (status, target) {
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    if (!options.sessionToken && !AV.User.current()) {
+    if (!getSessionToken(options) && !AV.User.current()) {
       throw new Error('Please signin an user.');
     }
     if (!target) {
@@ -16440,7 +18558,7 @@ module.exports = function (AV) {
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     if (!_.isString(inboxType)) options = inboxType;
-    if (!options.sessionToken && owner == null && !AV.User.current()) {
+    if (!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(function (owner) {
@@ -16470,7 +18588,7 @@ module.exports = function (AV) {
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     if (!_.isString(inboxType)) options = inboxType;
-    if (!options.sessionToken && owner == null && !AV.User.current()) {
+    if (!getSessionToken(options) && owner == null && !AV.User.current()) {
       throw new Error('Please signin an user or pass the owner objectId.');
     }
     return getUser(options).then(function (owner) {
@@ -20964,10 +23082,10 @@ exports.cleanHeader = function(header, shouldStripCookie){
 /******/ ]);
 });
 //# sourceMappingURL=av.js.map
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(40), __webpack_require__(21).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(48), __webpack_require__(25).Buffer))
 
 /***/ }),
-/* 40 */
+/* 48 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -21157,7 +23275,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 41 */
+/* 49 */
 /***/ (function(module, exports) {
 
 var g;
@@ -21184,13 +23302,13 @@ module.exports = g;
 
 
 /***/ }),
-/* 42 */
+/* 50 */
 /***/ (function(module, exports) {
 
 module.exports = ReactRouterDOM;
 
 /***/ }),
-/* 43 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(5);

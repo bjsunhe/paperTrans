@@ -1,5 +1,5 @@
 {
-  "name": "paperTool",
+  "name": "paperTrans",
   "version": "1.0.0",
   "description": "测试 接口",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/betweens/paperTool.git"
+    "url": "git+https://github.com/bjsunhe/paperTrans"
   },
   "keywords": [
     "react",
